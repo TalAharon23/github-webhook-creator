@@ -1,6 +1,6 @@
 provider "github" {
   # Configure GitHub provider
-  token = "your-github-token"
+  token = "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"
 }
 
 provider "aws" {
@@ -8,14 +8,56 @@ provider "aws" {
   region = "us-east-1"
 }
 
+# Create API Gateway
+resource "aws_api_gateway_rest_api" "webhook_api" {
+  name        = "webhook-api"
+  description = "API Gateway for GitHub webhook"
+}
+
+resource "aws_api_gateway_resource" "webhook_resource" {
+  rest_api_id = aws_api_gateway_rest_api.webhook_api.id
+  parent_id   = aws_api_gateway_rest_api.webhook_api.root_resource_id
+  path_part   = "webhook"
+}
+
+resource "aws_api_gateway_method" "webhook_method" {
+  rest_api_id   = aws_api_gateway_rest_api.webhook_api.id
+  resource_id   = aws_api_gateway_resource.webhook_resource.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "webhook_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.webhook_api.id
+  resource_id             = aws_api_gateway_resource.webhook_resource.id
+  http_method             = aws_api_gateway_method.webhook_method.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.webhook.invoke_arn
+}
+
+# Deploy API Gateway
+resource "aws_api_gateway_deployment" "webhook" {
+  depends_on = [aws_api_gateway_integration.webhook_integration]
+  rest_api_id = aws_api_gateway_rest_api.webhook_api.id
+  stage_name  = "prod"
+}
+
 # GitHub Webhook
+resource "github_repository" "repo" {
+  name         = "gh-pr-logger-repo"
+  description  = "Github repository to enable webhook on"
+  homepage_url = "https://github.com/TalAharon23/${var.github_repo}"
+
+  visibility   = "private"
+}
+
 resource "github_repository_webhook" "webhook" {
-  repository = var.github_repo
-  name       = "web"
+  repository = github_repository.repo.name
   events     = ["pull_request"]
 
-  configuration = {
-    url          = aws_lambda_function.webhook.invoke_arn
+  configuration {
+    url          = aws_api_gateway_deployment.webhook.invoke_url
     content_type = "json"
   }
 }
@@ -25,11 +67,15 @@ resource "aws_lambda_function" "webhook" {
   function_name = "github-webhook"
   runtime       = "python3.8"
   handler       = "lambda_function.lambda_handler"
-  filename      = "path/to/your/lambda/zip/file.zip"  # Package your Lambda function
+  filename      = "lambda_handler.zip"
 
   role = aws_iam_role.lambda.arn
 
-  # Additional Lambda configuration like environment variables, etc.
+  environment {
+    variables = {
+      SNS_TOPIC_ARN = aws_sns_topic.github_webhook_topic.arn
+    }
+  }
 }
 
 # SNS Topic
@@ -41,7 +87,7 @@ resource "aws_sns_topic" "github_webhook_topic" {
 resource "aws_sns_topic_subscription" "github_webhook_subscription" {
   topic_arn = aws_sns_topic.github_webhook_topic.arn
   protocol  = "email"
-  endpoint  = "tal.aharon97@gmail.com"
+  endpoint  = "dsaptal@gmail.com"
 }
 
 # IAM Role for Lambda
@@ -60,39 +106,17 @@ resource "aws_iam_role" "lambda" {
   })
 }
 
+# # IAM Policy for Lambda Role
+# data "aws_iam_policy_document" "lambda" {
+#   source = file("lambda_policy.json")
+# }
+
 # IAM Policy for Lambda Role
 resource "aws_iam_role_policy" "lambda" {
   name   = "lambda-policy"
   role   = aws_iam_role.lambda.id
 
-  # Define the necessary policies for GitHub, CloudWatch Logs, and SNS
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": "github:Get*",
-      "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "sns:Publish",
-        "sns:ListTopics"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
-EOF
+  # Use the loaded IAM policy
+  policy = file("lambda_policy.json")
+  # policy = data.aws_iam_policy_document.lambda.json
 }
