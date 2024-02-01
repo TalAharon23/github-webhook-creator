@@ -14,6 +14,11 @@ resource "aws_api_gateway_rest_api" "webhook_api" {
   description = "API Gateway for GitHub webhook"
 }
 
+resource "aws_api_gateway_rest_api_policy" "test" {
+  rest_api_id = aws_api_gateway_rest_api.webhook_api.id
+  policy      = file("apigw_policy.json")
+}
+
 resource "aws_api_gateway_resource" "webhook_resource" {
   rest_api_id = aws_api_gateway_rest_api.webhook_api.id
   parent_id   = aws_api_gateway_rest_api.webhook_api.root_resource_id
@@ -67,7 +72,7 @@ resource "aws_lambda_function" "webhook" {
   function_name = "github-webhook"
   runtime       = "python3.8"
   handler       = "lambda_function.lambda_handler"
-  filename      = "lambda_handler.zip"
+  filename      = "lambda_function.zip"
 
   role = aws_iam_role.lambda.arn
 
