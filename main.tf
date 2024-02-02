@@ -14,10 +14,13 @@ resource "aws_api_gateway_rest_api" "webhook_api" {
   description = "API Gateway for GitHub webhook"
 }
 
-resource "aws_api_gateway_rest_api_policy" "test" {
-  rest_api_id = aws_api_gateway_rest_api.webhook_api.id
-  policy      = file("apigw_policy.json")
-}
+# resource "aws_api_gateway_authorizer" "demo" {
+#   name                   = "apigw-webhook-authorizer"
+#   rest_api_id            = aws_api_gateway_rest_api.webhook_api.id
+#   authorizer_uri         = aws_lambda_function.webhook.invoke_arn
+#   authorizer_credentials = aws_iam_role.invocation_role.arn
+# }
+
 
 resource "aws_api_gateway_resource" "webhook_resource" {
   rest_api_id = aws_api_gateway_rest_api.webhook_api.id
@@ -29,7 +32,7 @@ resource "aws_api_gateway_method" "webhook_method" {
   rest_api_id   = aws_api_gateway_rest_api.webhook_api.id
   resource_id   = aws_api_gateway_resource.webhook_resource.id
   http_method   = "POST"
-  authorization = "NONE"
+  authorization = "AWS_IAM"
 }
 
 resource "aws_api_gateway_integration" "webhook_integration" {
@@ -48,17 +51,42 @@ resource "aws_api_gateway_deployment" "webhook" {
   stage_name  = "prod"
 }
 
-# GitHub Webhook
-resource "github_repository" "repo" {
-  name         = "gh-pr-logger-repo"
-  description  = "Github repository to enable webhook on"
-  homepage_url = "https://github.com/TalAharon23/${var.github_repo}"
+data "aws_iam_policy_document" "invocation_assume_role" {
+  statement {
+    effect = "Allow"
 
-  visibility   = "private"
+    principals {
+      type        = "Service"
+      identifiers = ["apigateway.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
 }
 
+resource "aws_iam_role" "invocation_role" {
+  name               = "api_gateway_auth_invocation"
+  path               = "/"
+  assume_role_policy = data.aws_iam_policy_document.invocation_assume_role.json
+}
+
+data "aws_iam_policy_document" "invocation_policy" {
+  statement {
+    effect    = "Allow"
+    actions   = ["lambda:InvokeFunction"]
+    resources = [aws_lambda_function.webhook.arn]
+  }
+}
+
+resource "aws_iam_role_policy" "invocation_policy" {
+  name   = "default"
+  role   = aws_iam_role.invocation_role.id
+  policy = data.aws_iam_policy_document.invocation_policy.json
+}
+
+# GitHub Webhook
 resource "github_repository_webhook" "webhook" {
-  repository = github_repository.repo.name
+  repository = var.github_repo
   events     = ["pull_request"]
 
   configuration {
@@ -110,12 +138,6 @@ resource "aws_iam_role" "lambda" {
     }],
   })
 }
-
-# # IAM Policy for Lambda Role
-# data "aws_iam_policy_document" "lambda" {
-#   source = file("lambda_policy.json")
-# }
-
 # IAM Policy for Lambda Role
 resource "aws_iam_role_policy" "lambda" {
   name   = "lambda-policy"
@@ -123,5 +145,4 @@ resource "aws_iam_role_policy" "lambda" {
 
   # Use the loaded IAM policy
   policy = file("lambda_policy.json")
-  # policy = data.aws_iam_policy_document.lambda.json
 }
