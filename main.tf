@@ -40,9 +40,10 @@ resource "aws_api_gateway_integration" "webhook_integration" {
   http_method             = aws_api_gateway_method.webhook_method.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  # uri = "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/${aws_lambda_function.webhook.invoke_arn}/invocations"
   uri                     = aws_lambda_function.webhook.invoke_arn
 }
+
+data "aws_caller_identity" "current" {}
 
 # Allow API Gateway to invoke the Lambda function
 resource "aws_lambda_permission" "apigw_lambda" {
@@ -51,15 +52,11 @@ resource "aws_lambda_permission" "apigw_lambda" {
   function_name = aws_lambda_function.webhook.function_name
   principal     = "apigateway.amazonaws.com"
 
-  # Dynamically construct the source ARN
-  # source_arn = aws_api_gateway_rest_api.webhook_api.execution_arn
-  # source_arn = aws_api_gateway_deployment.webhook.execution_arn
-  source_arn = "arn:aws:execute-api:us-east-1:622395351311:${aws_api_gateway_rest_api.webhook_api.id}/*/${aws_api_gateway_method.webhook_method.http_method}${aws_api_gateway_resource.webhook_resource.path}"
+  source_arn = "arn:aws:execute-api:us-east-1:${data.aws_caller_identity.current.account_id}:${aws_api_gateway_rest_api.webhook_api.id}/*/${aws_api_gateway_method.webhook_method.http_method}${aws_api_gateway_resource.webhook_resource.path}"
 }
 
 # Deploy API Gateway
 resource "aws_api_gateway_deployment" "webhook" {
-  # depends_on = [aws_api_gateway_integration.webhook_integration]
   depends_on = [aws_api_gateway_method.webhook_method, aws_api_gateway_integration.webhook_integration]
   rest_api_id = aws_api_gateway_rest_api.webhook_api.id
   triggers = {
@@ -126,8 +123,6 @@ resource "aws_lambda_function" "webhook" {
   runtime       = "python3.8"
   handler       = "lambda_function.lambda_handler"
   filename      = "lambda_function.zip"
-  source_code_hash = filebase64sha256("lambda_function.zip")
-
   role = aws_iam_role.lambda.arn
 
   environment {

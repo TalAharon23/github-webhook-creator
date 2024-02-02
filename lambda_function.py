@@ -11,16 +11,21 @@ logger.setLevel(logging.INFO)
 sns_topic_arn = os.environ.get('SNS_TOPIC_ARN', 'default-sns-topic-arn')
 
 # Initialize AWS SDK clients
-cloudwatch_logs = boto3.client('logs')
 sns_client = boto3.client('sns')
 
-def lambda_handler(event, context):    
+def lambda_handler(event, context):
+    logger.info("Starting analyzing the event payload...")
+
     try:
-        if event['pull_request']['merged']: 
+        # Parse the JSON body
+        body = json.loads(event['body'])
+        
+        if body['pull_request']['merged']: 
+            logger.info("Found a merged PR request.")
             try:
                 # Extract information from GitHub webhook payload
-                repository_name = event['repository']['full_name']
-                pull_request = event['pull_request']
+                repository_name = body['repository']['full_name']
+                pull_request = body['pull_request']
                 changed_files = pull_request['head']['repo']['contents_url'].replace('{+path}', '')
 
                 # Log repository name and changed files to CloudWatch Logs
@@ -40,15 +45,24 @@ def lambda_handler(event, context):
                 )
                 logger.info(f"SNS Notification sent: {sns_response}")
 
+                return {
+                    'statusCode': 200,
+                    'body': json.dumps('Webhook processed successfully')
+                }
             except Exception as e:
                 logger.error(f"Error processing GitHub webhook event: {e}")
-
+                return {
+                    'statusCode': 500,
+                    'body': json.dumps('Internal server error')
+                }
+        else:
             return {
-                'statusCode': 200,
-                'body': json.dumps('Webhook processed successfully')
+                'statusCode': 400,
+                'body': json.dumps('Not a merged PR request!')
             }
     except KeyError as e:
+        logger.error(f"Error processing GitHub webhook event: {e}")
         return {
-            'statusCode': 200,
-            'body': json.dumps('Not a merged PR request!')
+            'statusCode': 400,
+            'body': json.dumps(f"Error processing GitHub webhook event: {e}")
         }
