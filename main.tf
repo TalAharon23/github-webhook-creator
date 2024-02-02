@@ -14,13 +14,12 @@ resource "aws_api_gateway_rest_api" "webhook_api" {
   description = "API Gateway for GitHub webhook"
 }
 
-# resource "aws_api_gateway_authorizer" "demo" {
-#   name                   = "apigw-webhook-authorizer"
-#   rest_api_id            = aws_api_gateway_rest_api.webhook_api.id
-#   authorizer_uri         = aws_lambda_function.webhook.invoke_arn
-#   authorizer_credentials = aws_iam_role.invocation_role.arn
-# }
-
+resource "aws_api_gateway_authorizer" "demo" {
+  name                   = "apigw-webhook-authorizer"
+  rest_api_id            = aws_api_gateway_rest_api.webhook_api.id
+  authorizer_uri         = aws_lambda_function.webhook.invoke_arn
+  authorizer_credentials = aws_iam_role.invocation_role.arn
+}
 
 resource "aws_api_gateway_resource" "webhook_resource" {
   rest_api_id = aws_api_gateway_rest_api.webhook_api.id
@@ -32,7 +31,7 @@ resource "aws_api_gateway_method" "webhook_method" {
   rest_api_id   = aws_api_gateway_rest_api.webhook_api.id
   resource_id   = aws_api_gateway_resource.webhook_resource.id
   http_method   = "POST"
-  authorization = "AWS_IAM"
+  authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "webhook_integration" {
@@ -41,14 +40,40 @@ resource "aws_api_gateway_integration" "webhook_integration" {
   http_method             = aws_api_gateway_method.webhook_method.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
+  # uri = "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/${aws_lambda_function.webhook.invoke_arn}/invocations"
   uri                     = aws_lambda_function.webhook.invoke_arn
+}
+
+# Allow API Gateway to invoke the Lambda function
+resource "aws_lambda_permission" "apigw_lambda" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.webhook.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # Dynamically construct the source ARN
+  # source_arn = aws_api_gateway_rest_api.webhook_api.execution_arn
+  # source_arn = aws_api_gateway_deployment.webhook.execution_arn
+  source_arn = "arn:aws:execute-api:us-east-1:622395351311:${aws_api_gateway_rest_api.webhook_api.id}/*/${aws_api_gateway_method.webhook_method.http_method}${aws_api_gateway_resource.webhook_resource.path}"
 }
 
 # Deploy API Gateway
 resource "aws_api_gateway_deployment" "webhook" {
-  depends_on = [aws_api_gateway_integration.webhook_integration]
+  # depends_on = [aws_api_gateway_integration.webhook_integration]
+  depends_on = [aws_api_gateway_method.webhook_method, aws_api_gateway_integration.webhook_integration]
   rest_api_id = aws_api_gateway_rest_api.webhook_api.id
-  stage_name  = "prod"
+  triggers = {
+    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.webhook_api.body))
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_api_gateway_stage" "apigw_stage" {
+  deployment_id = aws_api_gateway_deployment.webhook.id
+  rest_api_id   = aws_api_gateway_rest_api.webhook_api.id
+  stage_name    = "dev"
 }
 
 data "aws_iam_policy_document" "invocation_assume_role" {
@@ -90,7 +115,7 @@ resource "github_repository_webhook" "webhook" {
   events     = ["pull_request"]
 
   configuration {
-    url          = aws_api_gateway_deployment.webhook.invoke_url
+    url          = "${aws_api_gateway_stage.apigw_stage.invoke_url}/${aws_api_gateway_resource.webhook_resource.path_part}"
     content_type = "json"
   }
 }
@@ -101,6 +126,7 @@ resource "aws_lambda_function" "webhook" {
   runtime       = "python3.8"
   handler       = "lambda_function.lambda_handler"
   filename      = "lambda_function.zip"
+  source_code_hash = filebase64sha256("lambda_function.zip")
 
   role = aws_iam_role.lambda.arn
 
@@ -123,21 +149,25 @@ resource "aws_sns_topic_subscription" "github_webhook_subscription" {
   endpoint  = "dsaptal@gmail.com"
 }
 
+data "aws_iam_policy_document" "assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
 # IAM Role for Lambda
 resource "aws_iam_role" "lambda" {
   name = "lambda-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Action = "sts:AssumeRole",
-      Effect = "Allow",
-      Principal = {
-        Service = "lambda.amazonaws.com",
-      },
-    }],
-  })
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
+
 # IAM Policy for Lambda Role
 resource "aws_iam_role_policy" "lambda" {
   name   = "lambda-policy"
@@ -145,4 +175,8 @@ resource "aws_iam_role_policy" "lambda" {
 
   # Use the loaded IAM policy
   policy = file("lambda_policy.json")
+}
+
+output "api_gateway_invoke_url" {
+  value = aws_api_gateway_stage.apigw_stage.invoke_url
 }
