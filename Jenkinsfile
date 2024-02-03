@@ -7,10 +7,10 @@ pipeline {
         choice(name: 'action', choices: ['Create', 'Destroy'], description: 'Choose whether to create or destroy webhook and all resources')
     }
 
-    environment {
-        AWS_ACCESS_KEY_ID       = credentials('AWS_ACCESS_KEY_ID')
-        AWS_SECRET_ACCESS_ID    = credentials('AWS_SECRET_ACCESS_ID')
-    }
+    // environment {
+    //     AWS_ACCESS_KEY_ID       = credentials('AWS_ACCESS_KEY_ID')
+    //     AWS_SECRET_ACCESS_ID    = credentials('AWS_SECRET_ACCESS_ID')
+    // }
 
     stages {
         stage('Checkout') {
