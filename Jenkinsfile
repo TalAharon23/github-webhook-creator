@@ -8,20 +8,20 @@ pipeline {
     }
 
     environment {
-        GITHUB_TOKEN = credentials('jenkins-github-token') // Use your credentials ID
+        GITHUB_TOKEN = credentials('github-token-creds') // Use your credentials ID
     }
 
     stages {
-        // stage('Checkout') {
-        //     steps {
-        //         script {
-        //             dir("gh-pr-webhook")
-        //             {
-        //                 sh "git clone https://${env.GITHUB_TOKEN}@github.com/TalAharon23/gh-pr-logger.git"
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Checkout') {
+            steps {
+                script {
+                    dir("gh-pr-webhook")
+                    {
+                        sh "git clone https://${env.GITHUB_TOKEN}@github.com/TalAharon23/gh-pr-logger.git"
+                    }
+                }
+            }
+        }
 
         stage('Init') {
             steps {
@@ -52,13 +52,13 @@ pipeline {
     }
 }
 
-def withAWSCredentials(String credentialsId, Closure body) {
-    withCredentials([[
-        $class: 'AmazonWebServicesCredentialsBinding',
-        credentialsId: credentialsId,
-        accessKeyVariable: "AWS_ACCESS_KEY_ID",
-        secretKeyVariable: "AWS_SECRET_ACCESS_KEY"
-    ]]) {
-        body.call()
-    }
-}
+// def withAWSCredentials(String credentialsId, Closure body) {
+//     withCredentials([[
+//         $class: 'AmazonWebServicesCredentialsBinding',
+//         credentialsId: credentialsId,
+//         accessKeyVariable: "AWS_ACCESS_KEY_ID",
+//         secretKeyVariable: "AWS_SECRET_ACCESS_KEY"
+//     ]]) {
+//         body.call()
+//     }
+// }
