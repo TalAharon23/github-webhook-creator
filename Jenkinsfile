@@ -12,9 +12,9 @@ pipeline {
         choice(name: 'action', choices: ['Create', 'Destroy'], description: 'Choose whether to create or destroy webhook and all resources')
     }
 
-    // environment {
-    //     GITHUB_TOKEN = credentials('github-token-creds') // Use your credentials ID
-    // }
+    environment {
+        PATH = "/var/jenkins_home/tools/org.jenkinsci.plugins.terraform.TerraformInstallation/Terraform-1.7.2/terraform"
+    }
 
     stages {
         // stage('Checkout') {
@@ -33,7 +33,7 @@ pipeline {
                 withAWSCredentials("aws-jenkins") {
                     script {
                         sh 'pwd; ls'
-                        sh '/var/jenkins_home/tools/org.jenkinsci.plugins.terraform.TerraformInstallation/Terraform-1.7.2/terraform init -reconfigure'
+                        sh ' init -reconfigure'
                         // sh 'pwd;cd gh-pr-webhook/ ; terraform init -reconfigure  '
                     }
                 }
@@ -42,8 +42,9 @@ pipeline {
         
         stage('Plan') {
             steps {
-                sh "pwd;cd gh-pr-webhook/ ; terraform plan -out tfplan"
-                sh 'pwd;cd gh-pr-webhook/ ; terraform show -no-color tfplan > tfplan.txt'
+                withAWSCredentials("aws-jenkins") {
+                sh "terraform plan"
+                }
             }
         }
 
@@ -52,7 +53,7 @@ pipeline {
                 withAWSCredentials("aws-jenkins") {
                     script {
                         def action = params.create ? 'apply' : 'destroy'
-                        sh "pwd;cd gh-pr-webhook/ ;terraform ${action} -auto-approve -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}'"
+                        sh "terraform ${action} -auto-approve -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}'"
                     }
                 }
             }
