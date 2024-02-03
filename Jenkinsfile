@@ -17,16 +17,6 @@ pipeline {
     }
 
     stages {
-        stage('Print Parameters') {
-            steps {
-                script {
-                    echo "AWS Region: ${params.aws_region}"
-                    echo "GitHub Repo Name: ${params.github_repo_name}"
-                    echo "Action: ${params.action}"
-                }
-            }
-        }
-
         stage('Init') {
             steps {
                 withAWSCredentials("aws-jenkins") {
@@ -41,7 +31,7 @@ pipeline {
         stage('Plan') {
             steps {
                 withAWSCredentials("aws-jenkins") {
-                sh "${TF_PATH} plan"
+                sh "${TF_PATH} plan -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}'"
                 }
             }
         }
