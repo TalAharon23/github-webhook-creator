@@ -39,8 +39,10 @@ pipeline {
         stage('Apply or Destroy') {
             steps {
                 withAWSCredentials("aws-jenkins") {
-                    script {
-                        sh "${TF_PATH} ${action} -auto-approve -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}'"
+                    withCredentials([usernameColonPassword(credentialsId: 'github-token-creds', variable: '')]) {
+                        script {
+                            sh "${TF_PATH} ${action} -auto-approve -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}'"
+                        }
                     }
                 }
             }
