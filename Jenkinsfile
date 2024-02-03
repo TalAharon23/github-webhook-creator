@@ -18,7 +18,7 @@ pipeline {
                 script {
                     dir("gh-pr-webhook")
                     {
-                        git https://github.com/TalAharon23/gh-pr-logger.git
+                        git "https://github.com/TalAharon23/gh-pr-logger.git"
                     }
                 }
             }
