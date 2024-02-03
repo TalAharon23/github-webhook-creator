@@ -30,10 +30,12 @@ pipeline {
 
         stage('Init') {
             steps {
-                script {
-                    sh 'pwd; ls'
-                    sh '/var/jenkins_home/tools/org.jenkinsci.plugins.terraform.TerraformInstallation/Terraform-1.7.2/terraform init -reconfigure'
-                    // sh 'pwd;cd gh-pr-webhook/ ; terraform init -reconfigure  '
+                withAWSCredentials("aws-jenkins") {
+                    script {
+                        sh 'pwd; ls'
+                        sh '/var/jenkins_home/tools/org.jenkinsci.plugins.terraform.TerraformInstallation/Terraform-1.7.2/terraform init -reconfigure'
+                        // sh 'pwd;cd gh-pr-webhook/ ; terraform init -reconfigure  '
+                    }
                 }
             }
         }
@@ -58,13 +60,13 @@ pipeline {
     }
 }
 
-// def withAWSCredentials(String credentialsId, Closure body) {
-//     withCredentials([[
-//         $class: 'AmazonWebServicesCredentialsBinding',
-//         credentialsId: credentialsId,
-//         accessKeyVariable: "AWS_ACCESS_KEY_ID",
-//         secretKeyVariable: "AWS_SECRET_ACCESS_KEY"
-//     ]]) {
-//         body.call()
-//     }
-// }
+def withAWSCredentials(String credentialsId, Closure body) {
+    withCredentials([[
+        $class: 'AmazonWebServicesCredentialsBinding',
+        credentialsId: credentialsId,
+        accessKeyVariable: "AWS_ACCESS_KEY_ID",
+        secretKeyVariable: "AWS_SECRET_ACCESS_KEY"
+    ]]) {
+        body.call()
+    }
+}
