@@ -12,5 +12,4 @@ variable "github_repo_name" {
 variable "github_token" {
   description = "Github token for access to create the webhook"
   type = string
-  default = "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" # TODO: REMOVE!
 }
