@@ -12,20 +12,21 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                script {
-                    dir("gh-pr-webhook")
-                    {
-                        sh "git clone https://${env.GITHUB_TOKEN}@github.com/TalAharon23/gh-pr-logger.git"
-                    }
-                }
-            }
-        }
+        // stage('Checkout') {
+        //     steps {
+        //         script {
+        //             dir("gh-pr-webhook")
+        //             {
+        //                 sh "git clone https://${env.GITHUB_TOKEN}@github.com/TalAharon23/gh-pr-logger.git"
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Init') {
             steps {
                 script {
+                    sh 'pwd; ls'
                     sh 'pwd;cd gh-pr-webhook/ ; terraform init'
                 }
             }
