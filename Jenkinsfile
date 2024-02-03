@@ -41,11 +41,24 @@ pipeline {
 
         stage('Apply or Destroy') {
             steps {
-                script {
-                    def action = params.create ? 'apply' : 'destroy'
-                    sh "pwd;cd gh-pr-webhook/ ;terraform ${action} -auto-approve -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}'"
+                withAWSCredentials("aws-jenkins") {
+                    script {
+                        def action = params.create ? 'apply' : 'destroy'
+                        sh "pwd;cd gh-pr-webhook/ ;terraform ${action} -auto-approve -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}'"
+                    }
                 }
             }
         }
+    }
+}
+
+def withAWSCredentials(String credentialsId, Closure body) {
+    withCredentials([[
+        $class: 'AmazonWebServicesCredentialsBinding',
+        credentialsId: credentialsId,
+        accessKeyVariable: "AWS_ACCESS_KEY_ID",
+        secretKeyVariable: "AWS_SECRET_ACCESS_KEY"
+    ]]) {
+        body.call()
     }
 }
