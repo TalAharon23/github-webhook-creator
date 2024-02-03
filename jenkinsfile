@@ -7,20 +7,43 @@ pipeline {
         choice(name: 'action', choices: ['Create', 'Destroy'], description: 'Choose whether to create or destroy webhook and all resources')
     }
 
+    environment {
+        AWS_ACCESS_KEY_ID       = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_ID    = credentials('AWS_SECRET_ACCESS_ID')
+    }
+
     stages {
-        stage('Init') {
+        stage('Checkout') {
             steps {
                 script {
-                    sh 'terraform init'
+                    dir("gh-pr-webhook")
+                    {
+                        git https://github.com/TalAharon23/gh-pr-logger.git
+                    }
                 }
             }
         }
-        //Test
+
+        stage('Init') {
+            steps {
+                script {
+                    sh 'pwd;cd gh-pr-webhook/ ; terraform init'
+                }
+            }
+        }
+        
+        stage('Plan') {
+            steps {
+                sh "pwd;cd gh-pr-webhook/ ; terraform plan -out tfplan"
+                sh 'pwd;cd gh-pr-webhook/ ; terraform show -no-color tfplan > tfplan.txt'
+            }
+        }
+
         stage('Apply or Destroy') {
             steps {
                 script {
                     def action = params.create ? 'apply' : 'destroy'
-                    sh "terraform ${action} -auto-approve -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}'"
+                    sh "pwd;cd gh-pr-webhook/ ;terraform ${action} -auto-approve -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}'"
                 }
             }
         }
