@@ -13,18 +13,18 @@ pipeline {
     // }
 
     stages {
-        stage('Checkout') {
-            steps {
-                script {
-                    dir("gh-pr-webhook")
-                    {
-                        withCredentials([gitCredentials(credentialsId: 'github-jenkins', urlVariable: 'https://github.com/TalAharon23/gh-pr-logger.git')]) {
-                            sh 'git clone $GIT_URL'
-                        }                    
-                    }
-                }
-            }
-        }
+        // stage('Checkout') {
+        //     steps {
+        //         script {
+        //             dir("gh-pr-webhook")
+        //             {
+        //                 withCredentials([gitCredentials(credentialsId: 'github-jenkins', urlVariable: 'https://github.com/TalAharon23/gh-pr-logger.git')]) {
+        //                     sh 'git clone $GIT_URL'
+        //                 }                    
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Init') {
             steps {
