@@ -18,7 +18,9 @@ pipeline {
                 script {
                     dir("gh-pr-webhook")
                     {
-                        git "https://github.com/TalAharon23/gh-pr-logger.git"
+                        withCredentials([gitCredentials(credentialsId: 'jenkins-github-token', urlVariable: 'https://github.com/TalAharon23/gh-pr-logger.git')]) {
+                            sh 'git clone $GIT_URL'
+                        }                    
                     }
                 }
             }
