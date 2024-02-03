@@ -7,21 +7,21 @@ pipeline {
         choice(name: 'action', choices: ['Create', 'Destroy'], description: 'Choose whether to create or destroy webhook and all resources')
     }
 
-    environment {
-        GITHUB_TOKEN = credentials('github-token-creds') // Use your credentials ID
-    }
+    // environment {
+    //     GITHUB_TOKEN = credentials('github-token-creds') // Use your credentials ID
+    // }
 
     stages {
-        stage('Checkout') {
-            steps {
-                script {
-                    dir("gh-pr-webhook")
-                    {
-                        sh "git clone https://${env.GITHUB_TOKEN}@github.com/TalAharon23/gh-pr-logger.git"
-                    }
-                }
-            }
-        }
+        // stage('Checkout') {
+        //     steps {
+        //         script {
+        //             dir("gh-pr-webhook")
+        //             {
+        //                 sh "git clone https://${env.GITHUB_TOKEN}@github.com/TalAharon23/gh-pr-logger.git"
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Init') {
             steps {
