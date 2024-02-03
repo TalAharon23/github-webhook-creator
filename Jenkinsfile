@@ -9,7 +9,7 @@ pipeline {
     parameters {
         string(name: 'aws_region', defaultValue: 'us-east-1', description: 'The AWS region to create all Github webhook logger services in')
         string(name: 'github_repo_name', defaultValue: '', description: 'GitHub repository name to create the webhook on')
-        choice(name: 'action', choices: ['Create', 'Destroy'], description: 'Choose whether to create or destroy webhook and all resources')
+        choice(name: 'action', choices: ['apply', 'destroy'], description: 'Choose whether to create or destroy webhook and all resources')
     }
 
     environment {
@@ -40,7 +40,6 @@ pipeline {
             steps {
                 withAWSCredentials("aws-jenkins") {
                     script {
-                        def action = params.create ? 'apply' : 'destroy'
                         sh "${TF_PATH} ${action} -auto-approve -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}'"
                     }
                 }
