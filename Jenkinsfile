@@ -31,7 +31,9 @@ pipeline {
         stage('Plan') {
             steps {
                 withAWSCredentials("aws-jenkins") {
-                sh "${TF_PATH} plan -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}'"
+                    withCredentials([string(credentialsId: 'git-token', variable: 'GH_TOKEN')]) {
+                        sh "${TF_PATH} plan -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name} -var='github_token=${GH_TOKEN}'"
+                    }
                 }
             }
         }
