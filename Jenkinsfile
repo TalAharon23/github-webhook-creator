@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    tools {
+        terraform 'Terraform-1.7.2'
+    }
+
+
     parameters {
         string(name: 'aws_region', defaultValue: 'us-east-1', description: 'The AWS region to create all Github webhook logger services in')
         string(name: 'github_repo_name', defaultValue: '', description: 'GitHub repository name to create the webhook on')
