@@ -15,7 +15,7 @@ pipeline {
                 }
             }
         }
-        //Testy
+        //Testyy
         stage('Apply or Destroy') {
             steps {
                 script {
