@@ -17,16 +17,15 @@ pipeline {
     }
 
     stages {
-        // stage('Checkout') {
-        //     steps {
-        //         script {
-        //             dir("gh-pr-webhook")
-        //             {
-        //                 sh "git clone https://${env.GITHUB_TOKEN}@github.com/TalAharon23/gh-pr-logger.git"
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Print Parameters') {
+            steps {
+                script {
+                    echo "AWS Region: ${params.aws_region}"
+                    echo "GitHub Repo Name: ${params.github_repo_name}"
+                    echo "Action: ${params.action}"
+                }
+            }
+        }
 
         stage('Init') {
             steps {
@@ -34,7 +33,6 @@ pipeline {
                     script {
                         sh 'pwd; ls'
                         sh "${TF_PATH} init -reconfigure"
-                        // sh 'pwd;cd gh-pr-webhook/ ; terraform init -reconfigure  '
                     }
                 }
             }
