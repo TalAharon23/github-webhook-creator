@@ -7,10 +7,9 @@ pipeline {
         choice(name: 'action', choices: ['Create', 'Destroy'], description: 'Choose whether to create or destroy webhook and all resources')
     }
 
-    // environment {
-    //     AWS_ACCESS_KEY_ID       = credentials('AWS_ACCESS_KEY_ID')
-    //     AWS_SECRET_ACCESS_ID    = credentials('AWS_SECRET_ACCESS_ID')
-    // }
+    environment {
+        GITHUB_TOKEN = credentials('jenkins-github-token') // Use your credentials ID
+    }
 
     stages {
         stage('Checkout') {
@@ -18,9 +17,7 @@ pipeline {
                 script {
                     dir("gh-pr-webhook")
                     {
-                        withCredentials([usernamePassword(credentialsId: 'github-jenkins', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                            sh "git clone https://${env.GIT_USERNAME}:${env.GIT_PASSWORD}@github.com/TalAharon23/gh-pr-logger.git"                  
-                        }
+                        sh "git clone https://${env.GITHUB_TOKEN}@github.com/TalAharon23/gh-pr-logger.git"
                     }
                 }
             }
