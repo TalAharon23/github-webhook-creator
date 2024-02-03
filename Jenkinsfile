@@ -43,7 +43,7 @@ pipeline {
         stage('Plan') {
             steps {
                 withAWSCredentials("aws-jenkins") {
-                sh "${TF_PATH} terraform plan"
+                sh "${TF_PATH} plan"
                 }
             }
         }
@@ -53,7 +53,7 @@ pipeline {
                 withAWSCredentials("aws-jenkins") {
                     script {
                         def action = params.create ? 'apply' : 'destroy'
-                        sh "${TF_PATH} terraform ${action} -auto-approve -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}'"
+                        sh "${TF_PATH} ${action} -auto-approve -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}'"
                     }
                 }
             }
