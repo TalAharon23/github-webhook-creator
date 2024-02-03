@@ -13,7 +13,7 @@ pipeline {
     }
 
     environment {
-        PATH = "/var/jenkins_home/tools/org.jenkinsci.plugins.terraform.TerraformInstallation/Terraform-1.7.2/terraform"
+        TF_PATH = "/var/jenkins_home/tools/org.jenkinsci.plugins.terraform.TerraformInstallation/Terraform-1.7.2/terraform"
     }
 
     stages {
@@ -33,7 +33,7 @@ pipeline {
                 withAWSCredentials("aws-jenkins") {
                     script {
                         sh 'pwd; ls'
-                        sh ' init -reconfigure'
+                        sh "${TF_PATH} init -reconfigure"
                         // sh 'pwd;cd gh-pr-webhook/ ; terraform init -reconfigure  '
                     }
                 }
@@ -43,7 +43,7 @@ pipeline {
         stage('Plan') {
             steps {
                 withAWSCredentials("aws-jenkins") {
-                sh "terraform plan"
+                sh "${TF_PATH} terraform plan"
                 }
             }
         }
@@ -53,7 +53,7 @@ pipeline {
                 withAWSCredentials("aws-jenkins") {
                     script {
                         def action = params.create ? 'apply' : 'destroy'
-                        sh "terraform ${action} -auto-approve -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}'"
+                        sh "${TF_PATH} terraform ${action} -auto-approve -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}'"
                     }
                 }
             }
