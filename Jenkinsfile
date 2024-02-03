@@ -32,7 +32,8 @@ pipeline {
             steps {
                 script {
                     sh 'pwd; ls'
-                    sh 'pwd;cd gh-pr-webhook/ ; terraform init'
+                    sh '/var/jenkins_home/tools/org.jenkinsci.plugins.terraform.TerraformInstallation/Terraform-1.7.2/terraform init -reconfigure'
+                    // sh 'pwd;cd gh-pr-webhook/ ; terraform init -reconfigure  '
                 }
             }
         }
