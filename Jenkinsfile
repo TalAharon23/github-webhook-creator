@@ -18,11 +18,24 @@ pipeline {
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    def gitCreds = credentials('github-token-creds')
+                    withCredentials([usernamePassword(credentialsId: gitCreds.id, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                        checkout([$class: 'GitSCM',
+                                branches: [[name: "refs/heads/main"]],
+                                userRemoteConfigs: [[url: 'https://github.com/TalAharon23/github-webhook-creator.git']],
+                                credentialsId: gitCreds.id])
+                    }
+                }
+            }
+        }
+
         stage('Init') {
             steps {
                 withAWSCredentials("aws-jenkins") {
                     script {
-                        sh 'git pull'
                         sh 'pwd; ls'
                         sh "${TF_PATH} init -reconfigure"
                     }
