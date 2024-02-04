@@ -18,6 +18,16 @@ pipeline {
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    dir("github-webhook-creator") {
+                        git branch: 'main', credentialsId: 'github-token-creds', url: 'https://github.com/TalAharon23/github-webhook-creator.git'
+                    }
+                }            
+            }
+        }
+
         stage('Init') {
             steps {
                 withAWSCredentials("aws-jenkins") {
