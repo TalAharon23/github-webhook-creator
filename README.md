@@ -36,7 +36,6 @@ After apply, set the Terraform variables used in this project:
 | ----------------------- | ------------------------------------------------------------------ | ------ | --------------- |
 | `aws_region`            | AWS region to create the GitHub webhook logger services in         | string | `us-east-1`     |
 | `github_repo_name`      | GitHub repository name to apply the webhook service on             | string | -               |
-| `s3_bucket_backend_name`| S3 bucket where Terraform stores the statefile                     | string | -               |
 | `email_subscriber`      | Which Email endpoint should get notified when webhook triggred?    | string | -               |
 | `github_token`          | GitHub token for access to create the webhook                      | string | -               |
 
@@ -46,10 +45,10 @@ After apply, set the Terraform variables used in this project:
 Here is an example of use after you've successfully configured this self-service in your Jenkins with all AWS and Github credentials there:
 
 After setting up the Jenkins self-service, it will look like this. To start running the self-service and creating a Github webhook on a Github repo, click on the "Build with Parameters"
-![image](https://github.com/TalAharon23/github-webhook-creator/assets/82831070/957ae229-d124-4cfe-a8e6-2ad5e6c7cd59)
+![image](https://github.com/TalAharon23/github-webhook-creator/assets/82831070/d088854b-13ad-4cf1-a422-cceb5b342363)
 
 Then, set the service variables based on the above Terraform variables mentioned before. Choose whether to create the Github webhook or destroy it.
-![image](https://github.com/TalAharon23/github-webhook-creator/assets/82831070/14b3fc29-e931-40ca-8315-874561a939bc)
+![image](https://github.com/TalAharon23/github-webhook-creator/assets/82831070/72eef650-8c5a-463d-8a55-515f22dc10aa)
 
 Click on Build and all the magic will happen 😊
 
