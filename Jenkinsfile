@@ -32,7 +32,7 @@ pipeline {
             steps {
                 withAWSCredentials("aws-jenkins") {
                     withCredentials([string(credentialsId: 'git-token', variable: 'GH_TOKEN')]) {
-                        sh "${TF_PATH} plan -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}' -var='github_token=${GH_TOKEN}'"
+                        sh "${TF_PATH} plan -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}' -var='s3_bucket_backend_name=github-webhook-statefiles-bucket' -var='github_token=${GH_TOKEN}'"
                     }
                 }
             }
@@ -43,7 +43,7 @@ pipeline {
                 withAWSCredentials("aws-jenkins") {
                     withCredentials([string(credentialsId: 'git-token', variable: 'GH_TOKEN')]) {
                         script {
-                            sh "${TF_PATH} ${action} -auto-approve -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}' -var='github_token=${GH_TOKEN}'"
+                            sh "${TF_PATH} ${action} -auto-approve -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}' -var='s3_bucket_backend_name=github-webhook-statefiles-bucket' -var='github_token=${GH_TOKEN}'"
                         }
                     }
                 }
