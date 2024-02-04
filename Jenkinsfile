@@ -34,7 +34,7 @@ pipeline {
             steps {
                 withAWSCredentials("aws-jenkins") {
                     script {
-                        sh 'pwd; ls'
+                        sh 'cd github-webhook-creator; pwd; ls'
                         sh "${TF_PATH} init -reconfigure"
                     }
                 }
