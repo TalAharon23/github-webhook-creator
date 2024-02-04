@@ -9,6 +9,7 @@ pipeline {
     parameters {
         string(name: 'aws_region', defaultValue: 'us-east-1', description: 'The AWS region to create all Github webhook logger services in')
         string(name: 'github_repo_name', defaultValue: '', description: 'GitHub repository name to create the webhook on')
+        string(name: 'email_subscriber', defaultValue: '', description: 'Which Email endpoint should get notified when webhook triggred?')
         choice(name: 'action', choices: ['apply', 'destroy'], description: 'Choose whether to create or destroy webhook and all resources')
     }
 
@@ -21,6 +22,7 @@ pipeline {
             steps {
                 withAWSCredentials("aws-jenkins") {
                     script {
+                        sh 'git pull'
                         sh 'pwd; ls'
                         sh "${TF_PATH} init -reconfigure"
                     }
@@ -32,7 +34,7 @@ pipeline {
             steps {
                 withAWSCredentials("aws-jenkins") {
                     withCredentials([string(credentialsId: 'git-token', variable: 'GH_TOKEN')]) {
-                        sh "${TF_PATH} plan -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}' -var='github_token=${GH_TOKEN}'"
+                        sh "${TF_PATH} plan -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}' -var='email_subscriber=${email_subscriber}' -var='github_token=${GH_TOKEN}'"
                     }
                 }
             }
@@ -43,7 +45,7 @@ pipeline {
                 withAWSCredentials("aws-jenkins") {
                     withCredentials([string(credentialsId: 'git-token', variable: 'GH_TOKEN')]) {
                         script {
-                            sh "${TF_PATH} ${action} -auto-approve -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}' -var='github_token=${GH_TOKEN}'"
+                            sh "${TF_PATH} ${action} -auto-approve -var='aws_region=${params.aws_region}' -var='github_repo_name=${params.github_repo_name}' -var='email_subscriber=${email_subscriber}' -var='github_token=${GH_TOKEN}'"
                         }
                     }
                 }
