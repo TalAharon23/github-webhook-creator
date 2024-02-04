@@ -21,9 +21,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    dir("github-webhook-creator") {
-                        git branch: 'main', credentialsId: 'github-token-creds', url: 'https://github.com/TalAharon23/github-webhook-creator.git'
-                    }
+                    git branch: 'main', credentialsId: 'github-token-creds', url: 'https://github.com/TalAharon23/github-webhook-creator.git'
                 }            
             }
         }
