@@ -18,11 +18,13 @@ pipeline {
     }
 
     stages {
-        stage('Pull changes') {
+        stage('Checkout') {
             steps {
                 withCredentials([usernameColonPassword(credentialsId: 'github-token-creds', variable: 'GIT_CREDENTIALS')]) {
                     script {
-                        sh 'git pull origin main'
+                        dir("github-webhook-creator") {
+                            git credentialsId: 'github-token-creds', url: 'https://github.com/TalAharon23/github-webhook-creator.git'
+                        }
                     }
                 }
             }
