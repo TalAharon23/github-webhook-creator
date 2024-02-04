@@ -36,7 +36,6 @@ After apply, set the Terraform variables used in this project:
 | ----------------------- | ------------------------------------------------------------------ | ------ | --------------- |
 | `aws_region`            | AWS region to create the GitHub webhook logger services in         | string | `us-east-1`     |
 | `github_repo_name`      | GitHub repository name to apply the webhook service on             | string | -               |
-| `s3_bucket_backend_name`| S3 bucket where Terraform stores the statefile                     | string | -               |
 | `github_token`          | GitHub token for access to create the webhook                      | string | -               |
 
 
