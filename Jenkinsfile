@@ -23,7 +23,6 @@ pipeline {
                 withCredentials([usernameColonPassword(credentialsId: 'github-token-creds', variable: 'GIT_CREDENTIALS')]) {
                     script {
                         git branch: 'main', credentialsId: 'github-token-creds', url: 'https://github.com/TalAharon23/github-webhook-creator.git'
-                        sh 'git pull'
                     }
                 }
             }
@@ -33,7 +32,7 @@ pipeline {
             steps {
                 withAWSCredentials("aws-jenkins") {
                     script {
-                        sh 'cd github-webhook-creator; pwd; ls'
+                        sh 'cat variables.tf; pwd; ls'
                         sh "${TF_PATH} init -reconfigure"
                     }
                 }
