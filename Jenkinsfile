@@ -23,7 +23,7 @@ pipeline {
                 withCredentials([usernameColonPassword(credentialsId: 'github-token-creds', variable: 'GIT_CREDENTIALS')]) {
                     script {
                         dir("github-webhook-creator") {
-                            git credentialsId: 'github-token-creds', url: 'https://github.com/TalAharon23/github-webhook-creator.git'
+                            git branch: 'main', credentialsId: 'github-token-creds', url: 'https://github.com/TalAharon23/github-webhook-creator.git'
                         }
                     }
                 }
