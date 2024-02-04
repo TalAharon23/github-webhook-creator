@@ -52,4 +52,14 @@ Then, set the service variables based on the above Terraform variables mentioned
 
 Click on Build and all the magic will happen 😊
 
+## Review the changes
+### After everything was set up you will see at the Github repo the new webhook that was created. And after a merged PR you will get an email notification with a link to the PR changes (Don't forget approve the email subscription).
+
+New Webhook:
+![image](https://github.com/TalAharon23/github-webhook-creator/assets/82831070/9697f555-1bd2-48a1-9178-3454ddce7244)
+
+Example of email:
+![image](https://github.com/TalAharon23/github-webhook-creator/assets/82831070/f727ee7c-97a9-4347-9fb4-0e9b791d48e9)
+
+
 
