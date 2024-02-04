@@ -1,3 +1,11 @@
+provider "github" {
+  token = var.github_token
+}
+
+provider "aws" {
+  region = var.aws_region
+}
+
 terraform {
   backend "s3" {
     bucket                  = var.s3_bucket_backend_name
@@ -5,12 +13,4 @@ terraform {
     region                  = "us-east-1"
     encrypt                 = true
   }
-}
-
-provider "github" {
-  token = var.github_token
-}
-
-provider "aws" {
-  region = var.aws_region
 }
