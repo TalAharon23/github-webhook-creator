@@ -8,7 +8,7 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket                  = var.s3_bucket_backend_name
+    bucket                  = "github-webhook-statefiles-bucket"
     key                     = "github-webhook-statefile.tfstate"
     region                  = "us-east-1"
     encrypt                 = true

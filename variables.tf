@@ -9,12 +9,6 @@ variable "github_repo_name" {
   type = string
 }
 
-variable "s3_bucket_backend_name" {
-  description = "On which s3 bucket should Terraform store the statefile"
-  default = "github-webhook-statefiles-bucket"
-  type = string
-}
-
 variable "email_subscriber" {
   description = "Which Email endpoint should get notified when webhook triggred?"
   type = string
